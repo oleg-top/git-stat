@@ -38,17 +38,6 @@ class GitRepository:
         for file in files:
             filepath = Path(file.strip())
 
-            if os.path.getsize(self.__repo_path + "/" + file.strip()) == 0:
-                log = run_log(
-                    repo_path=self.__repo_path,
-                    file_path=file.strip(),
-                    revision=self.__revision,
-                )
-
-                yield BlameFileStream(io.StringIO(""), log)
-
-                continue
-
             if len(self.__extensions) > 0:
                 ext = filepath.suffix
                 if ext not in self.__extensions:
@@ -82,4 +71,17 @@ class GitRepository:
                 revision=self.__revision,
             )
 
-            yield BlameFileStream(blame)
+            if blame.read(1) == "":
+                blame.seek(0)
+
+                log = run_log(
+                    repo_path=self.__repo_path,
+                    file_path=file.strip(),
+                    revision=self.__revision,
+                )
+
+                yield BlameFileStream(io.StringIO(""), log)
+            else:
+                blame.seek(0)
+
+                yield BlameFileStream(blame)

@@ -23,7 +23,8 @@ class DummyParseRepositoryUseCase:
 
 if __name__ == '__main__':
     storage = LocalGitRepositoryStorage()
-    # storage.set_restrictions(["*.py"])
+    storage.set_restrictions(["*.py"])
+    storage.set_revision("origin/master")
     stream_parser = StreamFileParser()
     dummy = DummyParseRepositoryUseCase(storage, stream_parser)
 
