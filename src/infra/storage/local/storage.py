@@ -4,9 +4,9 @@ from typing import Optional
 
 from infra.git.clone import run_clone
 from infra.git.git_repository import GitRepository
+from infra.git.pull import run_pull
 
 
-# TODO: имплементировать
 class LocalGitRepositoryStorage:
     def __init__(self, storage_path: Optional[Path] = None) -> None:
         if storage_path is None:
@@ -51,6 +51,8 @@ class LocalGitRepositoryStorage:
                 repo_url=repository_url,
                 path_to_store=str(self.__get_repository_path(repository_url)),
             )
+        else:
+            run_pull(repo_path=str(self.__get_repository_path(repository_url)))
 
         return GitRepository(
             repo_path=str(self.__get_repository_path(repository_url)),
