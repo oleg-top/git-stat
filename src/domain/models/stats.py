@@ -1,19 +1,18 @@
 from dataclasses import dataclass
 from typing import TypeAlias
 
-from domain.models.blame import CommitHash
-
+CommitHash: TypeAlias = str
 AuthorName: TypeAlias = str
 AuthorEmail: TypeAlias = str
 
 
-@dataclass(frozen=True)
+@dataclass
 class AuthorData:
     Name: AuthorName
     Email: AuthorEmail
 
 
-@dataclass(frozen=True)
+@dataclass
 class AuthorStats:
     Author: AuthorData
     Lines: int

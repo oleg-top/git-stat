@@ -1,13 +1,10 @@
-from typing import Protocol, Optional
+from typing import Protocol
 
 from domain.models.repo import Repository
 
 
 class RepositoryStorage(Protocol):
-    def get(self, repo_url: str) -> Optional[Repository]:  # signature may change in future
-        pass
-
-    def set(self, repository: Repository) -> None:
+    def ensure(self, repo_url: str) -> Repository:
         pass
 
     def clean(self) -> None:

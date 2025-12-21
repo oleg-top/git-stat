@@ -18,5 +18,7 @@ class RepoParser:
                     self.__stats[author_name].Lines += author_stats.Lines
                     self.__stats[author_name].Files += 1
                     self.__stats[author_name].Commits.update(author_stats.Commits)
+                else:
+                    self.__stats[author_name] = author_stats
 
         return self.__stats

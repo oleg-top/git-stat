@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from domain.models.blame import BlameStream, BlameFileStream, BlameAuthorData, BlameHashLine, CommitHash
+from domain.models.blame import BlameStream, BlameCommitAuthorData, BlameHashLine, CommitHash, BlameFileAuthorData
 from domain.models.stats import StreamStats, AuthorData, AuthorStats
 
 
@@ -14,12 +14,12 @@ class StreamFileParser:
         self.__commits_to_author: dict[CommitHash, AuthorData] = {}
         self.__stats: StreamStats = {}
 
-    def __add_commit(self, blame_author_data: BlameAuthorData) -> None:
+    def __add_commit(self, blame_author_data: BlameCommitAuthorData) -> None:
         if blame_author_data.Author.Name not in self.__stats.keys():
             self.__stats[blame_author_data.Author.Name] = AuthorStats(
                 Author=blame_author_data.Author,
                 Lines=0,
-                Commits=set(blame_author_data.Hash),
+                Commits={blame_author_data.Hash},
                 Files=1,
             )
         else:
@@ -27,9 +27,10 @@ class StreamFileParser:
 
         self.__commits_to_author[blame_author_data.Hash] = blame_author_data.Author
 
-    def get_stream_stats(self, stream: BlameFileStream) -> StreamStats:
+    def get_stream_stats(self, stream: BlameStream) -> StreamStats:
+        self.__stats = {}
         for blame_entry in stream:
-            if isinstance(blame_entry, BlameAuthorData):
+            if isinstance(blame_entry, BlameCommitAuthorData) or isinstance(blame_entry, BlameFileAuthorData):
                 self.__add_commit(blame_entry)
             elif isinstance(blame_entry, BlameHashLine):
                 author_data = self.__commits_to_author[blame_entry.Hash]
