@@ -18,23 +18,10 @@ class LocalGitRepositoryStorage:
             self.__storage_path: Path = storage_path
 
         self.__revision: str = "HEAD"
-        self.__extensions: set[str] = set()
-        self.__exclusions: list[str] = list()
-        self.__restrictions: list[str] = list()
-
         self.__cloned_repositories: set[str] = set()
 
     def set_revision(self, revision: str) -> None:
         self.__revision = revision
-
-    def set_extensions(self, extensions: set[str]) -> None:
-        self.__extensions = extensions
-
-    def set_exclusions(self, to_exclude: list[str]) -> None:
-        self.__exclusions = to_exclude
-
-    def set_restrictions(self, restrict_to: list[str]) -> None:
-        self.__restrictions = restrict_to
 
     def __get_repository_path(self, repository_url: str) -> Path:
         url_bytes = repository_url.encode('utf-8')
@@ -57,9 +44,6 @@ class LocalGitRepositoryStorage:
         return GitRepository(
             repo_path=str(self.__get_repository_path(repository_url)),
             revision=self.__revision,
-            extensions=self.__extensions,
-            exclude=self.__exclusions,
-            restrict_to=self.__restrictions,
         )
 
     def clean(self) -> None:

@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import Protocol, Iterator, TextIO, TypeAlias, Optional
 
+from domain.models.repo import RepositoryFilePath
 from domain.models.stats import AuthorData, AuthorName
 
 
@@ -33,77 +34,5 @@ class BlameFileAuthorData(BlameEntry):
     Hash: CommitHash
 
 
-class BlameStream(Protocol):
-    def __iter__(self) -> Iterator[BlameEntry]:
-        pass
+BlameStream: TypeAlias = Iterator[BlameEntry]
 
-
-class BlameFileStream:
-    def __init__(self, file: TextIO, creator: Optional[TextIO] = None) -> None:
-        self.__file = file
-        self.__known_hashes: set[CommitHash] = set()
-        self.__creator: Optional[TextIO] = creator
-
-    def __iter__(self) -> Iterator[BlameEntry]:
-        if self.__creator is not None:
-            line_elements = self.__creator.readline().split()
-            commit_hash = line_elements[0]
-            author_email = line_elements[1]
-            author_name = ' '.join(line_elements[2:])
-
-            yield BlameFileAuthorData(
-                Author=AuthorData(
-                    Name=author_name,
-                    Email=author_email,
-                ),
-                Hash=commit_hash,
-            )
-
-        for line in self.__file:
-            line = line.strip()
-
-            line_elements = line.split()
-            if len(line_elements) != 4 or len(line_elements) > 0 and len(line_elements[0]) != 40:
-                continue
-
-            commit_hash = line_elements[0]
-            original_line = int(line_elements[1])
-            final_line = int(line_elements[2])
-            lines_changed = int(line_elements[3])
-
-            if commit_hash not in self.__known_hashes:
-                author = ' '.join(next(self.__file).split()[1:])
-                author_email = ' '.join(next(self.__file).split()[1:])
-
-                for _ in range(2):
-                    next(self.__file)
-
-                commiter = ' '.join(next(self.__file).split()[1:])
-                commiter_email = ' '.join(next(self.__file).split()[1:])
-
-                for _ in range(2):
-                    next(self.__file)
-
-                commit_message = ' '.join(next(self.__file).split()[1:])
-
-                self.__known_hashes.add(commit_hash)
-
-                yield BlameCommitAuthorData(
-                    Author=AuthorData(
-                        Name=author,
-                        Email=author_email,
-                    ),
-                    Commiter=AuthorData(
-                        Name=commiter,
-                        Email=commiter_email,
-                    ),
-                    CommitMessage=commit_message,
-                    Hash=commit_hash,
-                )
-
-            yield BlameHashLine(
-                Hash=commit_hash,
-                OriginalLine=original_line,
-                FinalLine=final_line,
-                LinesChanged=lines_changed,
-            )
