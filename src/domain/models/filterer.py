@@ -8,6 +8,10 @@ class RepositoryFilter(Protocol):
     def match(self, file_path: RepositoryFilePath) -> bool:
         pass
 
+    @property
+    def cache_key(self) -> str:
+        pass
+
 
 class ExtensionsFilter:
     def __init__(self, extensions: set[str]) -> None:
@@ -20,6 +24,10 @@ class ExtensionsFilter:
             return False
 
         return True
+
+    @property
+    def cache_key(self) -> str:
+        return f"ext:{','.join(self.__extensions)}"
 
 
 class ExclusionsFilter:
@@ -40,6 +48,10 @@ class ExclusionsFilter:
 
         return True
 
+    @property
+    def cache_key(self) -> str:
+        return f"exc:{','.join(self.__exclusions)}"
+
 
 class RestrictionsFilter:
     def __init__(self, restrictions: list[str]) -> None:
@@ -58,6 +70,10 @@ class RestrictionsFilter:
             return False
 
         return True
+
+    @property
+    def cache_key(self) -> str:
+        return f"exc:{','.join(self.__restrictions)}"
 
 
 class RepositoryFilterer(Protocol):
