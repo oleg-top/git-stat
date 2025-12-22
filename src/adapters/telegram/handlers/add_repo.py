@@ -2,8 +2,9 @@ from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
 from aiogram.filters import Command, StateFilter
-from services.redis_service import redis_client
-from utils import is_valid_git_url
+
+from adapters.telegram.services.redis_service import redis_client
+from adapters.telegram.utils import is_valid_git_url
 
 router = Router()
 

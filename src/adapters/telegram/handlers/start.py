@@ -1,7 +1,8 @@
 from aiogram import Router, types
 from aiogram.filters import Command
-from keyboards.main import get_main_keyboard
 from aiogram.fsm.context import FSMContext
+
+from adapters.telegram.keyboards.main import get_main_keyboard
 
 router = Router()
 

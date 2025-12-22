@@ -1,5 +1,6 @@
 from aiogram import Router, types, F
-from services.redis_service import redis_client
+
+from adapters.telegram.services.redis_service import redis_client
 
 router = Router()
 
