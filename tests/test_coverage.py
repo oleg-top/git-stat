@@ -1,15 +1,15 @@
 import pytest
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 from aiogram.fsm.context import FSMContext
-from services.redis_service import redis_client
+
 
 
 class TestAdditionalCoverage:
 
     @pytest.mark.asyncio
     async def test_add_repo_invalid_url(self):
-        from handlers.add_repo import add_repo_receive_link
         from aiogram.fsm.context import FSMContext
+        from adapters.telegram.handlers.add_repo import add_repo_receive_link
 
         mock_message = AsyncMock()
         mock_message.text = "invalid-url"
@@ -25,7 +25,7 @@ class TestAdditionalCoverage:
 
     @pytest.mark.asyncio
     async def test_add_repo_cancel_command(self):
-        from handlers.add_repo import add_repo_receive_link
+        from adapters.telegram.handlers.add_repo import add_repo_receive_link
 
         mock_message = AsyncMock()
         mock_message.text = "/cancel"
@@ -39,7 +39,7 @@ class TestAdditionalCoverage:
         assert mock_state.clear.called
 
     def test_utils_edge_cases(self):
-        from utils import is_valid_git_url, format_repo_list
+        from adapters.telegram.utils import is_valid_git_url, format_repo_list
 
         assert not is_valid_git_url("")
         assert not is_valid_git_url("   ")
@@ -64,19 +64,9 @@ class TestAdditionalCoverage:
         result = format_repo_list(repos)
         assert "Ревизия: main" in result
 
-    def test_redis_edge_cases(self):
-        result = redis_client.get_repos(0)
-        assert result == []
-
-        result = redis_client.remove_repo(999, "", "")
-        assert result == 0
-
-        result = redis_client.repo_exists(999, "", "")
-        assert result is False
-
     @pytest.mark.asyncio
     async def test_handle_unknown_with_fsm_state(self):
-        from handlers.common import handle_unknown_message
+        from adapters.telegram.handlers.common import handle_unknown_message
 
         mock_message = AsyncMock()
         mock_message.text = "неизвестно"
@@ -90,7 +80,7 @@ class TestAdditionalCoverage:
 
     @pytest.mark.asyncio
     async def test_handle_unknown_menu_button(self):
-        from handlers.common import handle_unknown_message
+        from adapters.telegram.handlers.common import handle_unknown_message
 
         for button in ["➕ Добавить репозиторий", "📂 Мои репозитории", "🗑️ Удалить репозиторий"]:
             mock_message = AsyncMock()

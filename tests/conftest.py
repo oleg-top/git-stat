@@ -5,14 +5,6 @@ import os
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 
-@pytest.fixture(autouse=True)
-def clear_redis_data():
-    from services.redis_service import redis_client
-    redis_client._data.clear()
-    yield
-    redis_client._data.clear()
-
-
 @pytest.fixture
 def event_loop():
     import asyncio
