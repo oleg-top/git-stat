@@ -10,3 +10,6 @@ class UserRepositories(Protocol):
 
     def exists(self, user_id: int, repo_url: str) -> bool:
         pass
+
+    def remove(self, user_id: int, repo_url: str) -> None:
+        pass

@@ -12,6 +12,9 @@ class GitFileConverter:
         self.__revision: str = revision if revision is not None else "HEAD"
         self.__known_hashes: set[CommitHash] = set()
 
+    def set_revision(self, revision: str) -> None:
+        self.__revision = revision
+
     @staticmethod
     def __file_is_empty(file: TextIO):
         if file.read(1) == "":

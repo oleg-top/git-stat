@@ -18,3 +18,6 @@ class RedisUserRepositories:
 
     def exists(self, user_id: int, repo_url: str) -> bool:
         return bool(self.redis.sismember(self.__get_key(user_id), repo_url))
+
+    def remove(self, user_id: int, repo_url: str) -> None:
+        self.redis.srem(self.__get_key(user_id), repo_url)

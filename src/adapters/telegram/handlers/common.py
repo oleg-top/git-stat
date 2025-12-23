@@ -25,15 +25,6 @@ async def cmd_help(message: types.Message):
     )
 
 
-@router.message(F.text == "📊 Получить статистику")
-async def get_stats_info(message: types.Message):
-    await message.answer(
-        "📊 Получение статистики...\n\n"
-        "Эта функция находится в разработке.\n"
-        "Скоро вы сможете получать подробную статистику по вашим репозиториям!"
-    )
-
-
 @router.message(F.text)
 async def handle_unknown_message(message: types.Message, state: FSMContext):
     current_state = await state.get_state()

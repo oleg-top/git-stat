@@ -1,17 +1,17 @@
 from aiogram import Router, types, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import State, StatesGroup
-from aiogram.filters import Command, StateFilter
+from aiogram.filters import Command
 
-from adapters.telegram.services.redis_service import redis_client
+from adapters.telegram.keyboards.main import get_main_keyboard
 from adapters.telegram.utils import is_valid_git_url
+from app.use_cases.add_user_repository import AddUserRepositoryUseCase
 
 router = Router()
 
 
 class AddRepoStates(StatesGroup):
     waiting_for_link = State()
-    waiting_for_revision = State()
 
 
 @router.message(F.text == "➕ Добавить репозиторий")
@@ -27,7 +27,11 @@ async def add_repo_start(message: types.Message, state: FSMContext):
 
 
 @router.message(AddRepoStates.waiting_for_link, F.text)
-async def add_repo_receive_link(message: types.Message, state: FSMContext):
+async def add_repo_receive_link(
+    message: types.Message,
+    state: FSMContext,
+    add_repo_uc: AddUserRepositoryUseCase,
+):
     repo_link = message.text.strip()
 
     if message.text.lower() == "/cancel":
@@ -46,48 +50,21 @@ async def add_repo_receive_link(message: types.Message, state: FSMContext):
         )
         return
 
-    await state.update_data(repo_link=repo_link)
-    await message.answer(
-        "📝 Теперь укажите ревизию (ветку, тег или хэш коммита):\n\n"
-        "Примеры:\n"
-        "• main\n"
-        "• master\n"
-        "• v1.0.0\n"
-        "• abc123def\n\n"
-        "По умолчанию будет использоваться 'main'\n"
-        "❌ Для отмены отправьте /cancel"
-    )
-    await state.set_state(AddRepoStates.waiting_for_revision)
-
-
-@router.message(AddRepoStates.waiting_for_revision, F.text)
-async def add_repo_receive_revision(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
-    revision = message.text.strip() or "main"
-
-    if message.text.lower() == "/cancel":
-        await state.clear()
-        await message.answer("❌ Добавление репозитория отменено")
-        return
-
-    user_data = await state.get_data()
-    repo_link = user_data['repo_link']
 
     try:
-        result = redis_client.add_repo(user_id, repo_link, revision)
-        if result == 1:
+        added = add_repo_uc.execute(user_id=user_id, repo_url=repo_link)
+        if added:
             await message.answer(
                 f"✅ Репозиторий успешно добавлен!\n\n"
-                f"• Ссылка: `{repo_link}`\n"
-                f"• Ревизия: `{revision}`\n\n"
+                f"• Ссылка: `{repo_link}`\n\n"
                 f"Теперь вы можете получить по нему статистику!",
                 parse_mode='Markdown'
             )
         else:
             await message.answer(
                 f"⚠️ Репозиторий уже был в вашем списке:\n\n"
-                f"• Ссылка: `{repo_link}`\n"
-                f"• Ревизия: `{revision}`",
+                f"• Ссылка: `{repo_link}`",
                 parse_mode='Markdown'
             )
     except Exception as e:
@@ -104,5 +81,9 @@ async def cancel_any_state(message: types.Message, state: FSMContext):
         await message.answer("❌ Нет активных операций для отмены")
         return
 
+    keyboard = get_main_keyboard()
     await state.clear()
-    await message.answer("❌ Операция отменена")
+    await message.answer(
+        text="❌ Операция отменена",
+        reply_markup=keyboard,
+    )

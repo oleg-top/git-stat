@@ -1,5 +1,5 @@
 import re
-from typing import Optional, List, Dict, Any
+from typing import Optional
 
 
 def is_valid_git_url(url: Optional[str]) -> bool:

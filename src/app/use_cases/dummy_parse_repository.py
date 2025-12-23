@@ -8,7 +8,7 @@ from infra.git.file_converter import GitFileConverter
 from infra.storage.local.storage import LocalGitRepositoryStorage
 
 
-class DummyParseRepositoryUseCase:
+class ParseRepositoryUseCase:
     def __init__(
             self,
             storage: RepositoryStorage,
@@ -16,20 +16,21 @@ class DummyParseRepositoryUseCase:
             filterer: RepositoryFilterer,
             stream_parser: StreamParser,
     ) -> None:
-        self.__storage = storage
-        self.__file_converter = file_converter
+        self.storage = storage
+        self.file_converter = file_converter
+
         self.__filterer = filterer
         self.__stream_parser = stream_parser
 
     def execute(self, repository_url: str, filters: list[RepositoryFilter]) -> RepoStats:
-        repository = self.__storage.ensure(repository_url)
+        repository = self.storage.ensure(repository_url)
 
         self.__filterer.set(filters)
         filtered_repository = self.__filterer.apply(repository)
 
         repository_parser = RepoParser(
             filtered_repository,
-            self.__file_converter,
+            self.file_converter,
             self.__stream_parser,
         )
 
@@ -42,7 +43,7 @@ if __name__ == '__main__':
     file_converter = GitFileConverter("HEAD")
     filterer = DefaultRepositoryFilterer()
     stream_parser = StreamFileParser()
-    dummy = DummyParseRepositoryUseCase(
+    dummy = ParseRepositoryUseCase(
         storage,
         file_converter,
         filterer,
