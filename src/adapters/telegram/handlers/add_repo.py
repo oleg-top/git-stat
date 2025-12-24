@@ -6,6 +6,7 @@ from aiogram.filters import Command
 from adapters.telegram.keyboards.main import get_main_keyboard
 from adapters.telegram.utils import is_valid_git_url
 from app.use_cases.add_user_repository import AddUserRepositoryUseCase
+from infra.git.exceptions import GitPullError, GitCloneError
 
 router = Router()
 
@@ -67,7 +68,7 @@ async def add_repo_receive_link(
                 f"• Ссылка: `{repo_link}`",
                 parse_mode='Markdown'
             )
-    except Exception as e:
+    except (GitPullError, GitCloneError) as e:
         await message.answer("❌ Ошибка при добавлении репозитория")
         print(f"Error: {e}")
 

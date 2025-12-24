@@ -34,7 +34,7 @@ async def main():
 
     bot = Bot(token=config.BOT_TOKEN)
     dp = Dispatcher(storage=MemoryStorage())
-    redis_client = RedisClient(host="localhost", port=6379)
+    redis_client = RedisClient(host=config.REDIS_HOST, port=int(config.REDIS_PORT))
 
     user_repos_storage = RedisUserRepositories(redis_client)
     repo_storage = LocalGitRepositoryStorage()

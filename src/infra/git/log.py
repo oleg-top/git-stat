@@ -21,4 +21,4 @@ def run_log(
     except subprocess.CalledProcessError as e:
         raise GitLogError(f"Ошибка при клонировании репозитория: {e.stderr}")
 
-    return io.StringIO(res.stdout[1:-2])
+    return io.StringIO(res.stdout[1:-1])

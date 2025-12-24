@@ -11,20 +11,16 @@ async def list_repos(
 ):
     user_id = message.from_user.id
 
-    try:
-        repos = user_repos.list(user_id)
+    repos = user_repos.list(user_id)
 
-        if not repos:
-            await message.answer("📭 Список репозиториев пуст")
-            return
+    if not repos:
+        await message.answer("📭 Список репозиториев пуст")
+        return
 
-        response = "📂 Ваши репозитории:\n\n"
-        for i, repo_link in enumerate(repos, 1):
-            display_repo = repo_link
-            response += f"{i}. {display_repo}\n"
+    response = "📂 Ваши репозитории:\n\n"
+    for i, repo_link in enumerate(repos, 1):
+        display_repo = repo_link
+        response += f"{i}. {display_repo}\n"
 
-        await message.answer(response)
+    await message.answer(response)
 
-    except Exception as e:
-        await message.answer("❌ Ошибка при получении списка репозиториев")
-        print(f"Error: {e}")

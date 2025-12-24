@@ -6,6 +6,7 @@ from adapters.telegram.keyboards.main import get_main_keyboard
 from app.use_cases.dummy_parse_repository import ParseRepositoryUseCase
 from domain.models.filterer import ExtensionsFilter, ExclusionsFilter, RestrictionsFilter
 from domain.models.user_repos import UserRepositories
+from infra.git.exceptions import GitError
 
 router = Router()
 
@@ -82,6 +83,12 @@ async def stats_receive_repo(
 @router.message(StatsStates.waiting_for_revision, F.text)
 async def stats_receive_revision(message: types.Message, state: FSMContext):
     revision = message.text.strip() or "HEAD"
+
+    if len(revision.split()) > 1:
+        await message.answer(
+            "❌ Неправильная ревизия"
+        )
+        return
 
     if revision.lower() == "/cancel":
         keyboard = get_main_keyboard()
@@ -161,10 +168,10 @@ async def stats_receive_filters(
 
         response = f"📊 Статистика для {repo_link} ({revision}):\n\n"
         for author, stat in stats.items():
-            response += f"• {author}: {stat.Lines} строк, {stat.Files} файлов\n"
+            response += f"• {author}: {stat.Lines} строк, {stat.Files} файлов, {len(stat.Commits)} коммитов\n"
 
-        await message.answer(response)
-    except Exception as e:
+        await message.answer(response[:4000])
+    except GitError as e:
         await message.answer("❌ Ошибка при подсчёте статистики")
         print(f"Error: {e}")
 

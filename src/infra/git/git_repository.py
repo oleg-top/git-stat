@@ -1,6 +1,7 @@
 from typing import Iterator
 
 from domain.models.repo import RepositoryPath, RepositoryFilePath
+from infra.git.exceptions import GitLSTreeError
 from infra.git.ls_tree import run_ls_tree
 
 

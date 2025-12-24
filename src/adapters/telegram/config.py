@@ -1,14 +1,18 @@
 import os
 from dataclasses import dataclass
+from pathlib import Path
+
 from dotenv import load_dotenv
 
-load_dotenv()
+env_path = Path(__file__).parent.parent.parent.parent / '.env'
+load_dotenv(env_path)
 
 
 @dataclass
 class Config:
     BOT_TOKEN: str = os.getenv('BOT_TOKEN')
-    REDIS_URL: str = os.getenv('REDIS_URL', 'redis://localhost:6379')
+    REDIS_HOST: str = os.getenv('REDIS_HOST')
+    REDIS_PORT: str = os.getenv('REDIS_PORT')
 
     @classmethod
     def validate(cls):
