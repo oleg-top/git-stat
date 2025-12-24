@@ -17,6 +17,8 @@ class RepoParser:
         self.__stats: RepoStats = {}
 
     def calculate_stats(self) -> RepoStats:
+        self.__stats = {}
+
         for file_path in self.__repository:
             stream = self.__converter.stream(
                 repository_path=self.__repository.get_path(),

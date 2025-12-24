@@ -3,6 +3,8 @@ import subprocess
 from subprocess import CalledProcessError
 from typing import TextIO
 
+from infra.git.exceptions import GitLSTreeError
+
 
 def run_ls_tree(
         repo_path: str,
@@ -16,9 +18,8 @@ def run_ls_tree(
             text=True,
             check=True,
         )
+
     except CalledProcessError as e:
-        print(e.stdout)
-        print(e.stderr)
-        exit(e.returncode)
+        raise GitLSTreeError(f"Ошибка при клонировании репозитория: {e.stderr}")
 
     return io.StringIO(res.stdout)

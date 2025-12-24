@@ -1,9 +1,11 @@
+import subprocess
 from typing import Optional, TextIO
 
 from domain.models.blame import CommitHash, BlameStream, BlameFileAuthorData, BlameCommitAuthorData, BlameHashLine
 from domain.models.repo import RepositoryFilePath, RepositoryPath
 from domain.models.stats import AuthorData
 from infra.git.blame import run_blame
+from infra.git.exceptions import GitBlameError, GitLogError
 from infra.git.log import run_log
 
 
@@ -31,20 +33,26 @@ class GitFileConverter:
             repository_path: RepositoryPath,
             file_path: RepositoryFilePath,
     ) -> BlameStream:
-        blame = run_blame(
-            repo_path=repository_path,
-            file_path=file_path,
-            revision=self.__revision,
-        )
-
-        self.__known_hashes = set()
-
-        if self.__file_is_empty(blame):
-            log = run_log(
+        try:
+            blame = run_blame(
                 repo_path=repository_path,
                 file_path=file_path,
                 revision=self.__revision,
             )
+        except subprocess.CalledProcessError as e:
+            raise GitBlameError(f"Ошибка при получении blame: {e.stderr}")
+
+        self.__known_hashes = set()
+
+        if self.__file_is_empty(blame):
+            try:
+                log = run_log(
+                    repo_path=repository_path,
+                    file_path=file_path,
+                    revision=self.__revision,
+                )
+            except subprocess.CalledProcessError as e:
+                raise GitLogError(f"Ошибка при получении log: {e.stderr}")
 
             line_elements = log.readline().split()
             commit_hash = line_elements[0]
