@@ -20,6 +20,7 @@ class RepoParser:
         self.__stats = {}
 
         for file_path in self.__repository:
+            print(file_path)
             stream = self.__converter.stream(
                 repository_path=self.__repository.get_path(),
                 file_path=file_path,

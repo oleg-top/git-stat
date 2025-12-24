@@ -1,6 +1,7 @@
 from domain.models.file_converter import FileConverter
 from domain.models.filterer import RepositoryFilterer, RepositoryFilter, DefaultRepositoryFilterer, ExtensionsFilter
 from domain.models.stats import RepoStats
+from domain.models.stats_cache import StatsCache, make_stats_cache_key, RepositoryStatsCacheKey
 from domain.models.storage import RepositoryStorage
 from domain.parsing.repo_parser import RepoParser
 from domain.parsing.stream_parser import StreamParser, StreamFileParser
@@ -15,15 +16,29 @@ class ParseRepositoryUseCase:
             file_converter: FileConverter,
             filterer: RepositoryFilterer,
             stream_parser: StreamParser,
+            stats_cache: StatsCache,
     ) -> None:
         self.storage = storage
         self.file_converter = file_converter
+        self.stats_cache = stats_cache
 
         self.__filterer = filterer
         self.__stream_parser = stream_parser
 
-    def execute(self, repository_url: str, filters: list[RepositoryFilter]) -> RepoStats:
+    def execute(self, repository_url: str, revision: str, filters: list[RepositoryFilter]) -> RepoStats:
         repository = self.storage.ensure(repository_url)
+        key = make_stats_cache_key(
+            RepositoryStatsCacheKey(
+                repository_url,
+                revision,
+                tuple(sorted(f.cache_key for f in filters))
+            )
+        )
+
+        cached = self.stats_cache.get(key)
+
+        if cached is not None:
+            return cached
 
         self.__filterer.set(filters)
         filtered_repository = self.__filterer.apply(repository)
@@ -34,7 +49,10 @@ class ParseRepositoryUseCase:
             self.__stream_parser,
         )
 
-        return repository_parser.calculate_stats()
+        stats = repository_parser.calculate_stats()
+        self.stats_cache.set(key, stats)
+
+        return stats
 
 
 if __name__ == '__main__':

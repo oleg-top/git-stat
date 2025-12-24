@@ -18,6 +18,7 @@ from handlers.remove_repo import router as remove_repo_router
 from handlers.common import router as common_router
 from handlers.stats import router as stats_router
 from infra.cache.redis.client import RedisClient
+from infra.cache.redis.stats_cache import RedisStatsCache
 from infra.cache.redis.user_repos import RedisUserRepositories
 from infra.git.file_converter import GitFileConverter
 from infra.storage.local.storage import LocalGitRepositoryStorage
@@ -36,6 +37,7 @@ async def main():
     dp = Dispatcher(storage=MemoryStorage())
     redis_client = RedisClient(host=config.REDIS_HOST, port=int(config.REDIS_PORT))
 
+    stats_cache = RedisStatsCache(redis_client, 600)
     user_repos_storage = RedisUserRepositories(redis_client)
     repo_storage = LocalGitRepositoryStorage()
     file_converter = GitFileConverter()
@@ -43,7 +45,7 @@ async def main():
     stream_parser = StreamFileParser()
 
     add_repo_uc = AddUserRepositoryUseCase(user_repos_storage, repo_storage)
-    parse_repo_uc = ParseRepositoryUseCase(repo_storage, file_converter, filterer, stream_parser)
+    parse_repo_uc = ParseRepositoryUseCase(repo_storage, file_converter, filterer, stream_parser, stats_cache)
 
     dp.update.middleware(AddRepositoryMiddleware(add_repo_uc))
     dp.update.middleware(UserRepositoriesMiddleware(user_repos_storage))

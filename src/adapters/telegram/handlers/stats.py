@@ -103,7 +103,7 @@ async def stats_receive_revision(message: types.Message, state: FSMContext):
     await state.update_data(revision=revision)
     await message.answer(
         "🔹 Укажите фильтры для анализа.\n"
-        "Формат: несколько фильтров через точку с запятой (;)\n"
+        "Формат: несколько фильтров через точку с запятой (;) или Empty для отсутствия фильтрации\n"
         "Поддерживаемые типы:\n"
         "1️⃣ Расширения файлов (ext) — через запятую, пример: ext:.py,.js\n"
         "2️⃣ Исключения (exc) — файлы/папки, которые не учитывать, пример: exc:tests/*,docs/*.md\n"
@@ -142,20 +142,23 @@ async def stats_receive_filters(
     filters = []
 
     sth = False
-    for part in text.split(";"):
-        part = part.strip()
-        if part.startswith("ext:"):
-            exts = {e.strip() for e in part[4:].split(",") if e.strip()}
-            filters.append(ExtensionsFilter(exts))
-            sth = True
-        elif part.startswith("exc:"):
-            excs = [e.strip() for e in part[4:].split(",") if e.strip()]
-            filters.append(ExclusionsFilter(excs))
-            sth = True
-        elif part.startswith("res:"):
-            res = [e.strip() for e in part[4:].split(",") if e.strip()]
-            filters.append(RestrictionsFilter(res))
-            sth = True
+    if text != "Empty":
+        for part in text.split(";"):
+            part = part.strip()
+            if part.startswith("ext:"):
+                exts = {e.strip() for e in part[4:].split(",") if e.strip()}
+                filters.append(ExtensionsFilter(exts))
+                sth = True
+            elif part.startswith("exc:"):
+                excs = [e.strip() for e in part[4:].split(",") if e.strip()]
+                filters.append(ExclusionsFilter(excs))
+                sth = True
+            elif part.startswith("res:"):
+                res = [e.strip() for e in part[4:].split(",") if e.strip()]
+                filters.append(RestrictionsFilter(res))
+                sth = True
+    else:
+        sth = True
 
     if not sth:
         await message.answer("❌ Ошибка при разборе фильтров. Попробуйте снова.")
@@ -164,11 +167,11 @@ async def stats_receive_filters(
     await message.answer("⏳ Считаем статистику, это может занять некоторое время...")
 
     try:
-        stats = parse_repo_uc.execute(repository_url=repo_link, filters=filters)
+        stats = parse_repo_uc.execute(repository_url=repo_link, revision=revision, filters=filters)
 
         response = f"📊 Статистика для {repo_link} ({revision}):\n\n"
-        for author, stat in stats.items():
-            response += f"• {author}: {stat.Lines} строк, {stat.Files} файлов, {len(stat.Commits)} коммитов\n"
+        for author, stat in sorted(stats.items(), key=lambda x: -x[1].Lines):
+            response += f"• {author}: {stat.Lines}L, {stat.Files}F, {len(stat.Commits)}C\n"
 
         await message.answer(response[:4000])
     except GitError as e:
