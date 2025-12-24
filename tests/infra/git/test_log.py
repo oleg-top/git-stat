@@ -8,7 +8,7 @@ from infra.git.log import run_log
 
 def test_run_log_returns_stringio():
     mock_result = MagicMock()
-    mock_result.stdout = '"abc123 author@example.com John Doe"\n'
+    mock_result.stdout = '"abc123 author@example.com John Doe"'
 
     with patch("infra.git.log.subprocess.run", return_value=mock_result) as mock_run:
         stream = run_log("/repo/path", "file.py", "HEAD")
